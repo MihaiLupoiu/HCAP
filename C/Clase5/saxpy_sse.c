@@ -52,7 +52,7 @@ printf("\n");
 for (i=0;i<LIM;i++)
   y[i]=yc[i];
 
-//Poner aqui version de saxpy con SSE 
+//Poner aqui version de saxpy con SSE
 __m128 aVector = _mm_set1_ps(a);
 __m128 vectorX, vectorY;
 

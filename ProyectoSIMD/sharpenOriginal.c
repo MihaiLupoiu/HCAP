@@ -4,10 +4,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-//https://software.intel.com/en-us/articles/using-intel-streaming-simd-extensions-and-intel-integrated-performance-primitives-to-accelerate-algorithms/
-//https://github.com/siemion/SETI_GBT/blob/master/src/fold.c
-#include <pmmintrin.h>
-
 #ifdef IPP
 #include <ipp.h>
 #include <ippdefs.h>
@@ -30,31 +26,31 @@ UINT64 stopTSC = 0;
 UINT64 cycleCnt = 0;
 
 #define PMC_ASM(instructions,N,buf) \
-__asm__ __volatile__ ( instructions : "=A" (buf) : "c" (N) )
+  __asm__ __volatile__ ( instructions : "=A" (buf) : "c" (N) )
 
 #define PMC_ASM_READ_TSC(buf) \
-__asm__ __volatile__ ( "rdtsc" : "=A" (buf) )
+  __asm__ __volatile__ ( "rdtsc" : "=A" (buf) )
 
 //#define PMC_ASM_READ_PMC(N,buf) PMC_ASM("rdpmc" "\n\t" "andl $255,%%edx",N,buf)
 #define PMC_ASM_READ_PMC(N,buf) PMC_ASM("rdpmc",N,buf)
 
 #define PMC_ASM_READ_CR(N,buf) \
-__asm__ __volatile__ ( "movl %%cr" #N ",%0" : "=r" (buf) )
+  __asm__ __volatile__ ( "movl %%cr" #N ",%0" : "=r" (buf) )
 
 UINT64 readTSC(void)
 {
-    UINT64 ts;
+   UINT64 ts;
 
-    __asm__ volatile(".byte 0x0f,0x31" : "=A" (ts));
-    return ts;
+   __asm__ volatile(".byte 0x0f,0x31" : "=A" (ts));
+   return ts;
 }
 
 
 UINT64 cyclesElapsed(UINT64 stopTS, UINT64 startTS)
 {
-    return (stopTS - startTS);
+   return (stopTS - startTS);
 }
-
+						    
 #ifdef IPP
 void printCpuType(IppCpuType cpuType)
 {
@@ -92,15 +88,15 @@ void printCpuType(IppCpuType cpuType)
 
 void printCpuCapability(pStatus)
 {
-    printf("pStatus=%d\n",(UINT32)pStatus);
-    if((UINT32)pStatus & ippCPUID_MMX) printf("Intel Architecture MMX technology supported\n");
-    if((UINT32)pStatus & ippCPUID_SSE) printf("Streaming SIMD Extensions\n");
-    if((UINT32)pStatus & ippCPUID_SSE2) printf("Streaming SIMD Extensions 2\n");
-    if((UINT32)pStatus & ippCPUID_SSE3) printf("Streaming SIMD Extensions 3\n");
-    if((UINT32)pStatus & ippCPUID_SSSE3) printf("Supplemental Streaming SIMD Extensions 3\n");
-    if((UINT32)pStatus & ippCPUID_MOVBE) printf("The processor supports MOVBE instruction\n");
-    if((UINT32)pStatus & ippCPUID_SSE41) printf("Streaming SIMD Extensions 4.1\n");
-    if((UINT32)pStatus & ippCPUID_SSE42) printf("Streaming SIMD Extensions 4.2\n");
+printf("pStatus=%d\n",(UINT32)pStatus);
+if((UINT32)pStatus & ippCPUID_MMX) printf("Intel Architecture MMX technology supported\n");
+if((UINT32)pStatus & ippCPUID_SSE) printf("Streaming SIMD Extensions\n");
+if((UINT32)pStatus & ippCPUID_SSE2) printf("Streaming SIMD Extensions 2\n");
+if((UINT32)pStatus & ippCPUID_SSE3) printf("Streaming SIMD Extensions 3\n");
+if((UINT32)pStatus & ippCPUID_SSSE3) printf("Supplemental Streaming SIMD Extensions 3\n");
+if((UINT32)pStatus & ippCPUID_MOVBE) printf("The processor supports MOVBE instruction\n");
+if((UINT32)pStatus & ippCPUID_SSE41) printf("Streaming SIMD Extensions 4.1\n");
+if((UINT32)pStatus & ippCPUID_SSE42) printf("Streaming SIMD Extensions 4.2\n");
 }
 #endif
 
@@ -116,28 +112,26 @@ UINT8 convB[76800];
 
 #define K 4.0
 
-//FLOAT PSF[9] = {-K/8.0, -K/8.0, -K/8.0, -K/8.0, K+1.0, -K/8.0, -K/8.0, -K/8.0, -K/8.0};
-FLOAT PSF[12] = {-K/8.0, -K/8.0, -K/8.0, 0, -K/8.0, K+1.0, -K/8.0, 0, -K/8.0, -K/8.0, -K/8.0, 0};
+FLOAT PSF[9] = {-K/8.0, -K/8.0, -K/8.0, -K/8.0, K+1.0, -K/8.0, -K/8.0, -K/8.0, -K/8.0};
 
 int main(int argc, char *argv[])
 {
     int fdin, fdout, bytesRead=0, bytesLeft, i, j;
     UINT64 microsecs=0, clksPerMicro=0, millisecs=0;
     FLOAT temp, clkRate;
-
 #ifdef IPP
     IppCpuType cpuType;
     IppStatus pStatus;
     Ipp64u pFeatureMask;
     Ipp32u pCpuidInfoRegs[4];
-    
+
     cpuType=ippGetCpuType();
     pStatus=ippGetCpuFeatures(&pFeatureMask, pCpuidInfoRegs);
-    
+
     printCpuType(cpuType);
     printCpuCapability(pStatus);
 #endif
-
+    
     // Estimate CPU clock rate
     startTSC = readTSC();
     usleep(1000000);
@@ -148,23 +142,23 @@ int main(int argc, char *argv[])
     clkRate = ((FLOAT)cycleCnt)/1000000.0;
     clksPerMicro=(UINT64)clkRate;
     printf("Based on usleep accuracy, CPU clk rate = %llu clks/sec,",
-           cycleCnt);
+          cycleCnt);
     printf(" %7.1f Mhz\n", clkRate);
-
+    
     //printf("argc = %d\n", argc);
 
     if(argc < 2)
     {
-        printf("Usage: sharpen file.ppm\n");
-        exit(-1);
+       printf("Usage: sharpen file.ppm\n");
+       exit(-1);
     }
     else
     {
-        //printf("PSF:\n");
-        //for(i=0;i<9;i++)
-        //{
-        //    printf("PSF[%d]=%lf\n", i, PSF[i]);
-        //}
+	//printf("PSF:\n");
+	//for(i=0;i<9;i++)
+	//{
+	//    printf("PSF[%d]=%lf\n", i, PSF[i]);
+	//}
 
         //printf("Will open file %s\n", argv[1]);
 
@@ -190,13 +184,13 @@ int main(int argc, char *argv[])
     do
     {
         //printf("bytesRead=%d, bytesLeft=%d\n", bytesRead, bytesLeft);
-        bytesRead = (int) read(fdin, (void *)header, bytesLeft);
+        bytesRead=read(fdin, (void *)header, bytesLeft);
         bytesLeft -= bytesRead;
     } while(bytesLeft > 0);
 
     header[21]='\0';
 
-    //printf("header = %s\n", header);
+    //printf("header = %s\n", header); 
 
     // Read RGB data
     for(i=0; i<76800; i++)
@@ -209,113 +203,54 @@ int main(int argc, char *argv[])
     // Start of convolution time stamp
     startTSC = readTSC();
 
-    __m128 vectorR,vectorPSF, tmpMul, tmpSum;
-    __m128 vectorG, vectorB;
-
-
     // Skip first and last row, no neighbors to convolve with
     for(i=1; i<239; i++)
     {
+
         // Skip first and last column, no neighbors to convolve with
         for(j=1; j<319; j++)
         {
-            //set tmpSum = 0;
-            tmpSum = _mm_setzero_ps();
+            temp=0;
+            temp += (PSF[0] * (FLOAT)R[((i-1)*320)+j-1]);
+            temp += (PSF[1] * (FLOAT)R[((i-1)*320)+j]);
+            temp += (PSF[2] * (FLOAT)R[((i-1)*320)+j+1]);
+            temp += (PSF[3] * (FLOAT)R[((i)*320)+j-1]);
+            temp += (PSF[4] * (FLOAT)R[((i)*320)+j]);
+            temp += (PSF[5] * (FLOAT)R[((i)*320)+j+1]);
+            temp += (PSF[6] * (FLOAT)R[((i+1)*320)+j-1]);
+            temp += (PSF[7] * (FLOAT)R[((i+1)*320)+j]);
+            temp += (PSF[8] * (FLOAT)R[((i+1)*320)+j+1]);
+	    if(temp<0.0) temp=0.0;
+	    if(temp>255.0) temp=255.0;
+	    convR[(i*320)+j]=(UINT8)temp;
 
-            //Load PFS[12] with 0 in the 4th position.
-            //Example: [1,1,1,0,1,1,1,0,1,1,1,0]
-            vectorPSF = _mm_loadu_ps((float *)PSF+0);
-            //Load Red Vector of image converted to float;
-            vectorR = _mm_cvtpu8_ps( *((__m64 *) R+((i-1)*320)+j-1 ) );
+            temp=0;
+            temp += (PSF[0] * (FLOAT)G[((i-1)*320)+j-1]);
+            temp += (PSF[1] * (FLOAT)G[((i-1)*320)+j]);
+            temp += (PSF[2] * (FLOAT)G[((i-1)*320)+j+1]);
+            temp += (PSF[3] * (FLOAT)G[((i)*320)+j-1]);
+            temp += (PSF[4] * (FLOAT)G[((i)*320)+j]);
+            temp += (PSF[5] * (FLOAT)G[((i)*320)+j+1]);
+            temp += (PSF[6] * (FLOAT)G[((i+1)*320)+j-1]);
+            temp += (PSF[7] * (FLOAT)G[((i+1)*320)+j]);
+            temp += (PSF[8] * (FLOAT)G[((i+1)*320)+j+1]);
+	    if(temp<0.0) temp=0.0;
+	    if(temp>255.0) temp=255.0;
+	    convG[(i*320)+j]=(UINT8)temp;
 
-            //Multiply PSF*R and store to "temp" now tmpMul
-            tmpMul = _mm_mul_ps(vectorPSF, vectorR);
-
-            //Sum to "temp" now tempSum to do the final garder
-            tmpSum = _mm_add_ps(tmpMul, tmpSum);
-
-            ////////////////////////////////////////////////////////////////////
-            vectorPSF = _mm_loadu_ps((float *)PSF+4);
-            vectorR = _mm_cvtpu8_ps( *((__m64 *) R+((i)*320)+j-1 ) );
-
-            tmpMul = _mm_mul_ps(vectorPSF, vectorR);
-            tmpSum = _mm_add_ps(tmpMul, tmpSum);
-            ////////////////////////////////////////////////////////////////////
-            vectorPSF = _mm_loadu_ps( (float *) PSF+8);
-            vectorR = _mm_cvtpu8_ps( *((__m64 *) R+((i+1)*320)+j-1 ) );
-
-            tmpMul = _mm_mul_ps(vectorPSF, vectorR);
-            tmpSum = _mm_add_ps(tmpMul, tmpSum);
-            ////////////////////////////////////////////////////////////////////
-            tmpSum = _mm_hadd_ps(tmpSum, tmpSum);
-            tmpSum = _mm_hadd_ps(tmpSum, tmpSum);
-            _mm_store_ss( (float*) &temp, tmpSum);
-
-            if(temp<0.0) temp=0.0;
-            if(temp>255.0) temp=255.0;
-            convR[(i*320)+j]=(UINT8)temp;
-
-            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-            tmpSum = _mm_setzero_ps();
-
-            vectorPSF = _mm_loadu_ps((float *)PSF+0);
-            vectorG = _mm_cvtpu8_ps( *((__m64 *) G+((i-1)*320)+j-1 ) );
-
-            tmpMul = _mm_mul_ps(vectorPSF, vectorG);
-            tmpSum = _mm_add_ps(tmpMul, tmpSum);
-            ////////////////////////////////////////////////////////////////////
-            vectorPSF = _mm_loadu_ps((float *)PSF+4);
-            vectorG = _mm_cvtpu8_ps( *((__m64 *) G+((i)*320)+j-1 ) );
-
-            tmpMul = _mm_mul_ps(vectorPSF, vectorG);
-            tmpSum = _mm_add_ps(tmpMul, tmpSum);
-            ////////////////////////////////////////////////////////////////////
-            vectorPSF = _mm_loadu_ps( (float *) PSF+8);
-            vectorG = _mm_cvtpu8_ps( *((__m64 *) G+((i+1)*320)+j-1 ) );
-
-            tmpMul = _mm_mul_ps(vectorPSF, vectorG);
-            tmpSum = _mm_add_ps(tmpMul, tmpSum);
-            ////////////////////////////////////////////////////////////////////
-
-            tmpSum = _mm_hadd_ps(tmpSum, tmpSum);
-            tmpSum = _mm_hadd_ps(tmpSum, tmpSum);
-            _mm_store_ss( (float*) &temp, tmpSum);
-
-            if(temp<0.0) temp=0.0;
-            if(temp>255.0) temp=255.0;
-            convG[(i*320)+j]=(UINT8)temp;
-
-            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-            tmpSum = _mm_setzero_ps();
-
-            vectorPSF = _mm_loadu_ps((float *)PSF+0);
-            vectorB = _mm_cvtpu8_ps( *((__m64 *) B+((i-1)*320)+j-1 ) );
-
-            tmpMul = _mm_mul_ps(vectorPSF, vectorB);
-            tmpSum = _mm_add_ps(tmpMul, tmpSum);
-            ////////////////////////////////////////////////////////////////////
-            vectorPSF = _mm_loadu_ps((float *)PSF+4);
-            vectorB = _mm_cvtpu8_ps( *((__m64 *) B+((i)*320)+j-1 ) );
-
-            tmpMul = _mm_mul_ps(vectorPSF, vectorB);
-            tmpSum = _mm_add_ps(tmpMul, tmpSum);
-            ////////////////////////////////////////////////////////////////////
-            vectorPSF = _mm_loadu_ps( (float *) PSF+8);
-            vectorB = _mm_cvtpu8_ps( *((__m64 *) B+((i+1)*320)+j-1 ) );
-
-            tmpMul = _mm_mul_ps(vectorPSF, vectorB);
-            tmpSum = _mm_add_ps(tmpMul, tmpSum);
-            ////////////////////////////////////////////////////////////////////
-
-            tmpSum = _mm_hadd_ps(tmpSum, tmpSum);
-            tmpSum = _mm_hadd_ps(tmpSum, tmpSum);
-            _mm_store_ss( (float*) &temp, tmpSum);
-
-            if(temp<0.0) temp=0.0;
-            if(temp>255.0) temp=255.0;
-            convB[(i*320)+j]=(UINT8)temp;
+            temp=0;
+            temp += (PSF[0] * (FLOAT)B[((i-1)*320)+j-1]);
+            temp += (PSF[1] * (FLOAT)B[((i-1)*320)+j]);
+            temp += (PSF[2] * (FLOAT)B[((i-1)*320)+j+1]);
+            temp += (PSF[3] * (FLOAT)B[((i)*320)+j-1]);
+            temp += (PSF[4] * (FLOAT)B[((i)*320)+j]);
+            temp += (PSF[5] * (FLOAT)B[((i)*320)+j+1]);
+            temp += (PSF[6] * (FLOAT)B[((i+1)*320)+j-1]);
+            temp += (PSF[7] * (FLOAT)B[((i+1)*320)+j]);
+            temp += (PSF[8] * (FLOAT)B[((i+1)*320)+j+1]);
+	    if(temp<0.0) temp=0.0;
+	    if(temp>255.0) temp=255.0;
+	    convB[(i*320)+j]=(UINT8)temp;
         }
     }
 
@@ -326,7 +261,7 @@ int main(int argc, char *argv[])
     millisecs = microsecs/1000;
 
     printf("Convolution time in cycles=%llu, rate=%llu, about %llu millisecs\n",
-           cycleCnt, clksPerMicro, millisecs);
+	    cycleCnt, clksPerMicro, millisecs);
 
     write(fdout, (void *)header, 21);
 
@@ -341,5 +276,5 @@ int main(int argc, char *argv[])
 
     close(fdin);
     close(fdout);
-
+ 
 }
