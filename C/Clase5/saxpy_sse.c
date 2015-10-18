@@ -1,4 +1,4 @@
-#define LIM 16
+#define LIM 32
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,12 +9,12 @@
 
 #include <pmmintrin.h>
 
-float randfloat() 
-{ 
+float randfloat()
+{
     float r= (float)(rand());
     float div =(float)(1-RAND_MAX);
-    return r/div; 
-} 
+    return r/div;
+}
 
 
 int main(){

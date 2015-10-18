@@ -13,8 +13,9 @@
 #include <ippdefs.h>
 #endif
 
-typedef double FLOAT;
-//typedef float FLOAT;
+//typedef double FLOAT; // comentado y cambiado para poder cargar 4 valores.
+typedef float FLOAT; // # error "SSE3 instruction set not enabled"
+
 
 // Cycle Counter Code
 //
@@ -106,6 +107,9 @@ void printCpuCapability(pStatus)
 
 // PPM Edge Enhancement Code
 //
+
+//float a[16] __attribute__ ((aligned (16)));
+
 UINT8 header[22];
 UINT8 R[76800];
 UINT8 G[76800];
@@ -117,6 +121,7 @@ UINT8 convB[76800];
 #define K 4.0
 
 //FLOAT PSF[9] = {-K/8.0, -K/8.0, -K/8.0, -K/8.0, K+1.0, -K/8.0, -K/8.0, -K/8.0, -K/8.0};
+// modificado para poder cargar 4 vaores.
 FLOAT PSF[12] = {-K/8.0, -K/8.0, -K/8.0, 0, -K/8.0, K+1.0, -K/8.0, 0, -K/8.0, -K/8.0, -K/8.0, 0};
 
 int main(int argc, char *argv[])
@@ -219,37 +224,102 @@ int main(int argc, char *argv[])
         // Skip first and last column, no neighbors to convolve with
         for(j=1; j<319; j++)
         {
+            /*
+            temp=0;
+
+            temp += (PSF[0] * (FLOAT)R[((i-1)*320)+j-1]);
+            temp += (PSF[1] * (FLOAT)R[((i-1)*320)+j]);
+            temp += (PSF[2] * (FLOAT)R[((i-1)*320)+j+1]);
+
+            printf("PSF: %f %f %f %f\n", PSF[0], PSF[1], PSF[2], PSF[3]);
+            printf("VectorR: %d %d %d %d\n", R[((i-1)*320)+j-1], R[((i-1)*320)+j], R[((i-1)*320)+j+1], R[((i-1)*320)+j+2]);
+            printf("%f\n",temp);
+            printf("\n");
+
+            temp += (PSF[4] * (FLOAT)R[((i)*320)+j-1]);
+            temp += (PSF[5] * (FLOAT)R[((i)*320)+j]);
+            temp += (PSF[6] * (FLOAT)R[((i)*320)+j+1]);
+
+            printf("PSF: %f %f %f %f\n", PSF[4], PSF[5], PSF[6], PSF[7]);
+            printf("VectorR: %d %d %d %d\n", R[((i)*320)+j-1], R[((i)*320)+j], R[((i)*320)+j+1], R[((i)*320)+j+2]);
+            printf("%f\n",temp);
+            printf("\n");
+
+            temp += (PSF[8] * (FLOAT)R[((i+1)*320)+j-1]);
+            temp += (PSF[9] * (FLOAT)R[((i+1)*320)+j]);
+            temp += (PSF[10] * (FLOAT)R[((i+1)*320)+j+1]);
+
+            printf("PSF: %f %f %f %f\n", PSF[8], PSF[9], PSF[10], PSF[11]);
+            printf("VectorR: %d %d %d %d\n", R[((i+1)*320)+j-1], R[((i+1)*320)+j], R[((i+1)*320)+j+1], R[((i+1)*320)+j+2]);
+            printf("%f\n",temp);
+            printf("\n");
+             */
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//            printf("\n\nSIMD:\n\n");
+
             //set tmpSum = 0;
             tmpSum = _mm_setzero_ps();
+            //printf("tmpSum: %f %f %f %f\n", tmpSum[0], tmpSum[1], tmpSum[2], tmpSum[3]);
 
             //Load PFS[12] with 0 in the 4th position.
             //Example: [1,1,1,0,1,1,1,0,1,1,1,0]
-            vectorPSF = _mm_loadu_ps((float *)PSF+0);
+            vectorPSF = _mm_loadu_ps(PSF+0);
+//            printf("vectorPSF: %f %f %f %f\n", vectorPSF[0], vectorPSF[1], vectorPSF[2], vectorPSF[3]);
+
             //Load Red Vector of image converted to float;
-            vectorR = _mm_cvtpu8_ps( *((__m64 *) R+((i-1)*320)+j-1 ) );
+            //vectorR = _mm_cvtpu8_ps( *((__m64 *) R+((i-1)*320)+j-1 ) ); Solo funciona la primera vez.
+
+            vectorR = _mm_setr_ps(R[((i-1)*320)+j-1], R[((i-1)*320)+j], R[((i-1)*320)+j+1], 0);
+//            printf("vectorR: %f %f %f %f\n", vectorR[0], vectorR[1], vectorR[2], vectorR[3]);
 
             //Multiply PSF*R and store to "temp" now tmpMul
             tmpMul = _mm_mul_ps(vectorPSF, vectorR);
+//            printf("tmpMul: %f %f %f %f\n", tmpMul[0], tmpMul[1], tmpMul[2], tmpMul[3]);
 
             //Sum to "temp" now tempSum to do the final garder
             tmpSum = _mm_add_ps(tmpMul, tmpSum);
+//            printf("tmpSum: %f %f %f %f\n", tmpSum[0], tmpSum[1], tmpSum[2], tmpSum[3]);
 
+//printf("\n");
             ////////////////////////////////////////////////////////////////////
-            vectorPSF = _mm_loadu_ps((float *)PSF+4);
-            vectorR = _mm_cvtpu8_ps( *((__m64 *) R+((i)*320)+j-1 ) );
+            vectorPSF = _mm_loadu_ps(PSF+4);
+            //vectorR = _mm_cvtpu8_ps( *((__m64 *) R+((i)*320)+j-1) ); Funciona, carga otros valores de los esperados.
+            vectorR = _mm_setr_ps(R[((i)*320)+j-1], R[((i)*320)+j], R[((i)*320)+j+1], 0);
+
+//            printf("vectorPSF: %f %f %f %f\n", vectorPSF[0], vectorPSF[1], vectorPSF[2], vectorPSF[3]);
+//            printf("vectorR: %f %f %f %f\n", vectorR[0], vectorR[1], vectorR[2], vectorR[3]);
 
             tmpMul = _mm_mul_ps(vectorPSF, vectorR);
             tmpSum = _mm_add_ps(tmpMul, tmpSum);
+
+//            printf("tmpMul: %f %f %f %f\n", tmpMul[0], tmpMul[1], tmpMul[2], tmpMul[3]);
+//            printf("tmpSum: %f %f %f %f\n", tmpSum[0], tmpSum[1], tmpSum[2], tmpSum[3]);
+
+//printf("\n");
             ////////////////////////////////////////////////////////////////////
-            vectorPSF = _mm_loadu_ps( (float *) PSF+8);
-            vectorR = _mm_cvtpu8_ps( *((__m64 *) R+((i+1)*320)+j-1 ) );
+            vectorPSF = _mm_loadu_ps(PSF+8);
+            //vectorR = _mm_cvtpu8_ps( *((__m64 *) R+((i+1)*320)+j-1 ) );
+            vectorR = _mm_setr_ps(R[((i+1)*320)+j-1], R[((i+1)*320)+j], R[((i+1)*320)+j+1], 0);
+
+
+//            printf("vectorPSF: %f %f %f %f\n", vectorPSF[0], vectorPSF[1], vectorPSF[2], vectorPSF[3]);
+//            printf("vectorR: %f %f %f %f\n", vectorR[0], vectorR[1], vectorR[2], vectorR[3]);
 
             tmpMul = _mm_mul_ps(vectorPSF, vectorR);
             tmpSum = _mm_add_ps(tmpMul, tmpSum);
+
+//            printf("tmpMul: %f %f %f %f\n", tmpMul[0], tmpMul[1], tmpMul[2], tmpMul[3]);
+//            printf("tmpSum: %f %f %f %f\n", tmpSum[0], tmpSum[1], tmpSum[2], tmpSum[3]);
+//printf("\n");
             ////////////////////////////////////////////////////////////////////
             tmpSum = _mm_hadd_ps(tmpSum, tmpSum);
+//            printf("tmpSum: %f %f %f %f\n", tmpSum[0], tmpSum[1], tmpSum[2], tmpSum[3]);
+
             tmpSum = _mm_hadd_ps(tmpSum, tmpSum);
-            _mm_store_ss( (float*) &temp, tmpSum);
+//            printf("tmpSum: %f %f %f %f\n", tmpSum[0], tmpSum[1], tmpSum[2], tmpSum[3]);
+            _mm_store_ss(&temp, tmpSum);
+
+//            printf("\n");
 
             if(temp<0.0) temp=0.0;
             if(temp>255.0) temp=255.0;
@@ -259,20 +329,24 @@ int main(int argc, char *argv[])
 
             tmpSum = _mm_setzero_ps();
 
-            vectorPSF = _mm_loadu_ps((float *)PSF+0);
-            vectorG = _mm_cvtpu8_ps( *((__m64 *) G+((i-1)*320)+j-1 ) );
+            vectorPSF = _mm_loadu_ps(PSF+0);
+            //vectorG = _mm_cvtpu8_ps( *((__m64 *) G+((i-1)*320)+j-1 ) );
+            vectorG = _mm_setr_ps(G[((i-1)*320)+j-1], G[((i-1)*320)+j], G[((i-1)*320)+j+1], 0);
+
 
             tmpMul = _mm_mul_ps(vectorPSF, vectorG);
             tmpSum = _mm_add_ps(tmpMul, tmpSum);
             ////////////////////////////////////////////////////////////////////
-            vectorPSF = _mm_loadu_ps((float *)PSF+4);
-            vectorG = _mm_cvtpu8_ps( *((__m64 *) G+((i)*320)+j-1 ) );
+            vectorPSF = _mm_loadu_ps(PSF+4);
+            //vectorG = _mm_cvtpu8_ps( *((__m64 *) G+((i)*320)+j-1 ) );
+            vectorG = _mm_setr_ps(G[((i)*320)+j-1], G[((i)*320)+j], G[((i)*320)+j+1], 0);
 
             tmpMul = _mm_mul_ps(vectorPSF, vectorG);
             tmpSum = _mm_add_ps(tmpMul, tmpSum);
             ////////////////////////////////////////////////////////////////////
-            vectorPSF = _mm_loadu_ps( (float *) PSF+8);
-            vectorG = _mm_cvtpu8_ps( *((__m64 *) G+((i+1)*320)+j-1 ) );
+            vectorPSF = _mm_loadu_ps(PSF+8);
+            //vectorG = _mm_cvtpu8_ps( *((__m64 *) G+((i+1)*320)+j-1 ) );
+            vectorG = _mm_setr_ps(G[((i+1)*320)+j-1], G[((i+1)*320)+j], G[((i+1)*320)+j+1], 0);
 
             tmpMul = _mm_mul_ps(vectorPSF, vectorG);
             tmpSum = _mm_add_ps(tmpMul, tmpSum);
@@ -280,7 +354,7 @@ int main(int argc, char *argv[])
 
             tmpSum = _mm_hadd_ps(tmpSum, tmpSum);
             tmpSum = _mm_hadd_ps(tmpSum, tmpSum);
-            _mm_store_ss( (float*) &temp, tmpSum);
+            _mm_store_ss(&temp, tmpSum);
 
             if(temp<0.0) temp=0.0;
             if(temp>255.0) temp=255.0;
@@ -290,20 +364,26 @@ int main(int argc, char *argv[])
 
             tmpSum = _mm_setzero_ps();
 
-            vectorPSF = _mm_loadu_ps((float *)PSF+0);
-            vectorB = _mm_cvtpu8_ps( *((__m64 *) B+((i-1)*320)+j-1 ) );
+            vectorPSF = _mm_loadu_ps(PSF+0);
+            //vectorB = _mm_cvtpu8_ps( *((__m64 *) B+((i-1)*320)+j-1 ) );
+            vectorB = _mm_setr_ps(B[((i-1)*320)+j-1], B[((i-1)*320)+j], B[((i-1)*320)+j+1], 0);
+
 
             tmpMul = _mm_mul_ps(vectorPSF, vectorB);
             tmpSum = _mm_add_ps(tmpMul, tmpSum);
             ////////////////////////////////////////////////////////////////////
-            vectorPSF = _mm_loadu_ps((float *)PSF+4);
-            vectorB = _mm_cvtpu8_ps( *((__m64 *) B+((i)*320)+j-1 ) );
+            vectorPSF = _mm_loadu_ps(PSF+4);
+            //vectorB = _mm_cvtpu8_ps( *((__m64 *) B+((i)*320)+j-1 ) );
+            vectorB = _mm_setr_ps(B[((i)*320)+j-1], B[((i)*320)+j], B[((i)*320)+j+1], 0);
+
 
             tmpMul = _mm_mul_ps(vectorPSF, vectorB);
             tmpSum = _mm_add_ps(tmpMul, tmpSum);
             ////////////////////////////////////////////////////////////////////
-            vectorPSF = _mm_loadu_ps( (float *) PSF+8);
-            vectorB = _mm_cvtpu8_ps( *((__m64 *) B+((i+1)*320)+j-1 ) );
+            vectorPSF = _mm_loadu_ps( PSF+8);
+            //vectorB = _mm_cvtpu8_ps( *((__m64 *) B+((i+1)*320)+j-1 ) );
+            vectorB = _mm_setr_ps(B[((i+1)*320)+j-1], B[((i+1)*320)+j], B[((i+1)*320)+j+1], 0);
+
 
             tmpMul = _mm_mul_ps(vectorPSF, vectorB);
             tmpSum = _mm_add_ps(tmpMul, tmpSum);
@@ -311,12 +391,15 @@ int main(int argc, char *argv[])
 
             tmpSum = _mm_hadd_ps(tmpSum, tmpSum);
             tmpSum = _mm_hadd_ps(tmpSum, tmpSum);
-            _mm_store_ss( (float*) &temp, tmpSum);
+            _mm_store_ss(&temp, tmpSum);
 
             if(temp<0.0) temp=0.0;
             if(temp>255.0) temp=255.0;
             convB[(i*320)+j]=(UINT8)temp;
+            //break;
+
         }
+        //break;
     }
 
     // End of convolution time stamp
