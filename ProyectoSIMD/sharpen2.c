@@ -110,9 +110,9 @@ void printCpuCapability(pStatus)
 
 UINT8 header[22];
 
-UINT8 R[76800] __attribute__((align(16)));
-UINT8 G[76800] __attribute__((align(16)));
-UINT8 B[76800] __attribute__((align(16)));
+UINT8 R[76800] __attribute__((aligned(16)));
+UINT8 G[76800] __attribute__((aligned(16)));
+UINT8 B[76800] __attribute__((aligned(16)));
 
 UINT8 convR[76800];
 UINT8 convG[76800];
@@ -122,7 +122,7 @@ UINT8 convB[76800];
 
 //FLOAT PSF[9] = {-K/8.0, -K/8.0, -K/8.0, -K/8.0, K+1.0, -K/8.0, -K/8.0, -K/8.0, -K/8.0};
 // modificado para poder cargar 4 vaores.
-__attribute__((align(16))) FLOAT PSF[12] = {-K/8.0, -K/8.0, -K/8.0, 0, -K/8.0, K+1.0, -K/8.0, 0, -K/8.0, -K/8.0, -K/8.0, 0};
+FLOAT PSF[12] __attribute__((aligned(16))) = {-K/8.0, -K/8.0, -K/8.0, 0, -K/8.0, K+1.0, -K/8.0, 0, -K/8.0, -K/8.0, -K/8.0, 0};
 
 int main(int argc, char *argv[])
 {
@@ -226,7 +226,8 @@ int main(int argc, char *argv[])
         for(j=1; j<319; j++)
         {
 
-            mmx6_vPSF = _mm_loadu_ps(PSF+0);
+            //mmx6_vPSF = _mm_loadu_ps(PSF+0);
+            mmx6_vPSF = _mm_load_ps(PSF+0);
             mmx0_vR = _mm_cvtpu8_ps( *((__m64 *) &R[((i-1)*320)+j-1]) );
             mmx1_vG = _mm_cvtpu8_ps( *((__m64 *) &G[((i-1)*320)+j-1]) );
             mmx2_vB = _mm_cvtpu8_ps( *((__m64 *) &B[((i-1)*320)+j-1]) );
@@ -237,7 +238,7 @@ int main(int argc, char *argv[])
 
             ////////////////////////////////////////////////////////////////////
 
-            mmx6_vPSF = _mm_loadu_ps(PSF+4);
+            mmx6_vPSF = _mm_load_ps(PSF+4);
             mmx0_vR = _mm_cvtpu8_ps( *((__m64 *) &R[((i)*320)+j-1]) );
             mmx1_vG = _mm_cvtpu8_ps( *((__m64 *) &G[((i)*320)+j-1]) );
             mmx2_vB = _mm_cvtpu8_ps( *((__m64 *) &B[((i)*320)+j-1]) );
@@ -251,7 +252,7 @@ int main(int argc, char *argv[])
             mmx5_vB_t = _mm_add_ps(mmx5_vB_t, mmx2_vB);
 
             ////////////////////////////////////////////////////////////////////
-            mmx6_vPSF = _mm_loadu_ps(PSF+8);
+            mmx6_vPSF = _mm_load_ps(PSF+8);
 
             mmx0_vR = _mm_cvtpu8_ps( *((__m64 *) &R[((i+1)*320)+j-1]) );
             mmx1_vG = _mm_cvtpu8_ps( *((__m64 *) &G[((i+1)*320)+j-1]) );
