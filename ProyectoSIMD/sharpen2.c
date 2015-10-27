@@ -110,6 +110,9 @@ void printCpuCapability(pStatus)
 
 UINT8 header[22];
 
+__declspec(align(16)) UINT8 R[76800];
+
+
 UINT8 R[76800] __attribute__((aligned(16)));
 UINT8 G[76800] __attribute__((aligned(16)));
 UINT8 B[76800] __attribute__((aligned(16)));
