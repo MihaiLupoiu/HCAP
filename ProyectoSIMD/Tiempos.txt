@@ -87,3 +87,4 @@ Convolution time in cycles=5119604
 
 gcc sharpen3.c -o mejor2 -O3
 ./mejor2 sunset.ppm
+Convolution time in cycles=4698978
