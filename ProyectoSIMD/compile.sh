@@ -1,15 +1,68 @@
 
 #!/bin/sh
 
-make all
+if [ -z "$1" ]
+then
+    echo "No argument supplied";
+    exit;
+fi
 
-echo "===> Original:"
-./original.out sunset.ppm
+if [ "$1" == "all" ]; then
 
-echo "===> SSE V1:"
-./sse_v1.out sunset.ppm
+	make all
+	
+	echo "===> GCC <==="
+	
+	echo "===> Original:"
+	./original_gcc.out sunset.ppm
+	
+	echo "===> SSE V1:"
+	./sse_gcc_v1.out sunset.ppm
+	
+	echo "===> SSE V2:"
+	./sse_gcc_v2.out sunset.ppm
+	
+	echo "===> ICC <==="
+	
+	echo "===> Original:"
+	./original_icc.out sunset.ppm
+	
+	echo "===> SSE V1:"
+	./sse_icc_v1.out sunset.ppm
+	
+	echo "===> SSE V2:"
+	./sse_icc_v2.out sunset.ppm
+      
+else
+	if [ "$1" == "gcc" ]; then
+		make gcc
 
-echo "===> SSE V2:"
-./sse_v2.out sunset.ppm
+		echo "===> GCC <==="
+	
+		echo "===> Original:"
+		./original_gcc.out sunset.ppm
+		
+		echo "===> SSE V1:"
+		./sse_gcc_v1.out sunset.ppm
+		
+		echo "===> SSE V2:"
+		./sse_gcc_v2.out sunset.ppm
+		
+	else
+		make icc
+
+		echo "===> ICC <==="
+	
+		echo "===> Original:"
+		./original_icc.out sunset.ppm
+		
+		echo "===> SSE V1:"
+		./sse_icc_v1.out sunset.ppm
+		
+		echo "===> SSE V2:"
+		./sse_icc_v2.out sunset.ppm	
+	fi
+   
+fi
 
 make clean

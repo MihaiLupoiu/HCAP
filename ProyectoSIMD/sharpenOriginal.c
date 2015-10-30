@@ -138,9 +138,11 @@ int main(int argc, char *argv[])
     stopTSC = readTSC();
     cycleCnt = cyclesElapsed(stopTSC, startTSC);
 
-    //printf("Cycle Count=%llu\n", cycleCnt);
+    printf("Cycle Count=%llu\n", cycleCnt);
+    
     clkRate = ((FLOAT)cycleCnt)/1000000.0;
     clksPerMicro=(UINT64)clkRate;
+    
     //printf("Based on usleep accuracy, CPU clk rate = %llu clks/sec,", cycleCnt);
     //printf(" %7.1f Mhz\n", clkRate);
     
@@ -259,7 +261,7 @@ int main(int argc, char *argv[])
     microsecs = cycleCnt/clksPerMicro;
     millisecs = microsecs/1000;
 
-    printf("Convolution time in cycles=%llu\n",cycleCnt);
+    printf("Convolution time in cycles=%llu, rate=%llu, about %llu millisecs\n", cycleCnt, clksPerMicro, millisecs);
 
     write(fdout, (void *)header, 21);
 

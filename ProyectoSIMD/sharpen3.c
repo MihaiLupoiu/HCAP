@@ -303,6 +303,8 @@ int main(int argc, char *argv[])
     microsecs = cycleCnt/clksPerMicro;
     millisecs = microsecs/1000;
 
+	_mm_empty();
+
     printf("Convolution time in cycles=%llu\n", cycleCnt);
 
     write(fdout, (void *)header, 21);
