@@ -1,0 +1,90 @@
+/////////////////////
+Quadclaster:
+/////////////////////
+
+gcc sharpenOriginal.c
+./a.out sunset.ppm
+Convolution time in cycles=25078221, rate=18446744072407, about 0 millisecs
+
+gcc sharpen3.c -msse3
+./a.out sunset.ppm
+Convolution time in cycles=39244698, rate=18446744027136, about 0 millisecs
+
+25078221 - 39244698 = 144166477
+25078221 / 39244698 = 0,6390218877
+
+//==================
+
+icc sharpenOriginal.c -o original
+./original sunset.ppm
+Convolution time in cycles=8883099, rate=2992, about 2 millisecs
+
+icc sharpen4.c -o v4
+./v4 sunset.ppm
+Convolution time in cycles=7264071, rate=18446744027136, about 0 millisecs
+
+8883099 - 7264071 = 1619028
+8883099 / 7264071 = 1,2228816321
+
+
+//==================
+
+icc sharpenOriginal.c -o prueba -march=native
+./prueba sunset.ppm
+Convolution time in cycles=6252786, rate=2992, about 2 millisecs
+
+icc sharpen4.c -o v4 -march=native
+./v4 sunset.ppm
+Convolution time in cycles=7287624, rate=2992, about 2 millisecs
+
+6252786 - 7287624 = -1034838
+6252786 / 7287624 = 0,8580006323
+
+
+/////////////////////
+Local:
+/////////////////////
+
+gcc sharpenOriginal.c
+./a.out sunset.ppm
+Convolution time in cycles=9734829, rate=2402, about 4 millisecs
+
+gcc sharpen2.c
+./a.out sunset.ppm
+Convolution time in cycles=52546161, rate=2405, about 21 millisecs
+
+9734829 - 52546161 = -42811332
+9734829 / 52546161 = 0,185262421
+
+//==================
+
+Local care 2 duo:
+
+gcc sharpenOriginal.c -O2 -march=core2 -msse2 -o original
+./original sunset.ppm
+Convolution time in cycles=5671767, rate=18446744071825, about 0 millisecs
+
+gcc sharpen2.c -O2 -march=core2 -msse2 -o prueba
+./prueba sunset.ppm
+Convolution time in cycles=5061608, rate=2408, about 2 millisecs
+
+5671767 - 5061608 = 610159
+5671767 / 5061608 = 1,1205464746
+
+
+
+//=================
+
+Tiempos Definitivos:
+
+gcc sharpenOriginal.c -o original -O3
+./original sunset.ppm
+Convolution time in cycles=6175611
+
+gcc sharpen2.c -o mejor -O3
+./mejor sunset.ppm
+Convolution time in cycles=5119604
+
+gcc sharpen3.c -o mejor2 -O3
+./mejor2 sunset.ppm
+Convolution time in cycles=4698978
