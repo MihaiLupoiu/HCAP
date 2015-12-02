@@ -1,0 +1,33 @@
+INCLUDE_DIRS = 
+LIB_DIRS = /opt/intel/Compiler/11.0/083/ipp/ia32/lib
+CC= icc
+
+CDEFS=
+#CFLAGS= -DIPP -O0 $(INCLUDE_DIRS) $(CDEFS)
+#CFLAGS= -DIPP -O3 $(INCLUDE_DIRS) $(CDEFS)
+#CFLAGS= -DIPP -O3 -msse3 $(INCLUDE_DIRS) $(CDEFS)
+#CFLAGS= -DIPP -O3 -x SSSE3 $(INCLUDE_DIRS) $(CDEFS)
+CFLAGS= -DIPP -O3 -mssse3 -align -xssse3 -axssse3 $(INCLUDE_DIRS) $(CDEFS)
+LIBS= -lippcore
+
+PRODUCT=sharpen
+
+HFILES= 
+CFILES= sharpen.c
+
+SRCS= ${HFILES} ${CFILES}
+OBJS= ${CFILES:.c=.o}
+
+all:	${PRODUCT}
+
+clean:
+	-rm -f *.o *.NEW *~
+	-rm -f ${PRODUCT} ${DERIVED} ${GARBAGE}
+
+${PRODUCT}:	${OBJS}
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $(OBJS) $(LIBS)
+
+depend:
+
+.c.o:
+	$(CC) $(CFLAGS) -c $<

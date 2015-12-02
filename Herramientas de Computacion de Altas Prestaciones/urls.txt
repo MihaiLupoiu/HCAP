@@ -1,0 +1,12 @@
+Herramientas de Computacion de Altas Prestaciones/clase-13_10_15/material SSE/programacion sse,http://sci.tuomastonteri.fi/programming/sse
+
+Herramientas de Computacion de Altas Prestaciones/clase_27_10_2015/http://www.netlib.org/lapack/lapacke.html,http://www.netlib.org/lapack/lapacke.html
+
+Herramientas de Computacion de Altas Prestaciones/clase-13_10_15/trabajo SSE/articulo sharpen,http://software.intel.com/en-us/articles/using-intel-streaming-simd-extensions-and-intel-integrated-performance-primitives-to-accelerate-algorithms/
+
+Herramientas de Computacion de Altas Prestaciones/clase-13_10_15/material SSE/getting started with sse programming/,http://supercomputingblog.com/optimization/getting-started-with-sse-programming/
+
+Herramientas de Computacion de Altas Prestaciones/clase-13_10_15/material SSE/descripcion instrucciones sse,http://www.songho.ca/misc/sse/sse.html
+
+Herramientas de Computacion de Altas Prestaciones/clase-13_10_15/enlace avx-intel,https://software.intel.com/en-us/articles/introduction-to-intel-advanced-vector-extensions
+

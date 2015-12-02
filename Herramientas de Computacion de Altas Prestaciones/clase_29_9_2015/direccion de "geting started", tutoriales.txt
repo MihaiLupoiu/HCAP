@@ -1,0 +1,5 @@
+quadcluster
+/opt/intel/composerxe/Documentation/en_US/documentation_c.htm
+
+gpu
+/opt/intel/composer_xe_2013/Documentation/en_US/get_started_lc.htm
